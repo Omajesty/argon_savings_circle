@@ -4,10 +4,14 @@ Chairman Ade runs too many ajo circles and the arithmetic has defeated him. This
 
 There are two parts in this repo:
 
-| Piece | Where | Local URL |
-| --- | --- | --- |
-| API (FastAPI) | `app/` | http://127.0.0.1:8000/docs |
-| Website (Next.js) | `frontend/` | http://localhost:3000 |
+| Piece | Where | Local URL | Live |
+| --- | --- | --- | --- |
+| API (FastAPI) | `app/` | http://127.0.0.1:8000/docs | [Swagger docs](https://argon-savings-circle-ebko6idtd-majesty4.vercel.app/docs) |
+| Website (Next.js) | `frontend/` | http://localhost:3000 | Vercel (set `NEXT_PUBLIC_API_URL` to the API origin) |
+
+Live API origin (no `/docs`, no trailing slash):
+
+`https://argon-savings-circle-ebko6idtd-majesty4.vercel.app`
 
 Secrets are hard-coded on purpose so the lesson stays readable. That is a sin in production.
 
@@ -46,7 +50,11 @@ npm run dev
 
 Open http://localhost:3000
 
-The site talks to `http://127.0.0.1:8000` unless you set `NEXT_PUBLIC_API_URL`. Copy `frontend/.env.example` to `frontend/.env.local` if you need to change it.
+The site talks to `http://127.0.0.1:8000` unless you set `NEXT_PUBLIC_API_URL`. To use the hosted API locally, copy `frontend/.env.example` to `frontend/.env.local` and set:
+
+```
+NEXT_PUBLIC_API_URL=https://argon-savings-circle-ebko6idtd-majesty4.vercel.app
+```
 
 If you already had an old `ajo.db` from earlier work, delete it once so the tables match (the join-request table is new).
 
@@ -87,7 +95,7 @@ On Vercel the database file lives in `/tmp`. Demo users are reseeded when a new 
 2. **Root Directory:** leave as the repo root (not `frontend`).
 3. Framework should detect **FastAPI** (`app/main.py`).
 4. Deploy.
-5. Open `https://your-api.vercel.app/docs` and check it loads.
+5. Open [the live docs](https://argon-savings-circle-ebko6idtd-majesty4.vercel.app/docs) and check it loads.
 
 CORS is open (`allow_origins=["*"]`) for the hackathon.
 
@@ -100,7 +108,7 @@ CORS is open (`allow_origins=["*"]`) for the hackathon.
 
 | Name | Value |
 | --- | --- |
-| `NEXT_PUBLIC_API_URL` | `https://your-api.vercel.app` |
+| `NEXT_PUBLIC_API_URL` | `https://argon-savings-circle-ebko6idtd-majesty4.vercel.app` |
 
 No trailing slash.
 
@@ -109,7 +117,7 @@ No trailing slash.
 
 ### 4. If the site cannot reach the API
 
-Confirm `NEXT_PUBLIC_API_URL` on the website project matches the API URL (no trailing slash) and redeploy the website.
+Confirm `NEXT_PUBLIC_API_URL` on the website project is `https://argon-savings-circle-ebko6idtd-majesty4.vercel.app` (no trailing slash, no `/docs`) and redeploy the website.
 
 ## Why this auth style
 
