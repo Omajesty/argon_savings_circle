@@ -2,7 +2,7 @@ import os
 
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from app.models import User, UserRole
+from app.models.user import User, UserRole
 from app.services.security import hash_password
 
 # Vercel's disk is read-only except /tmp. Locally we keep ajo.db in the folder.

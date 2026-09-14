@@ -48,7 +48,30 @@ Open http://localhost:3000
 
 The site talks to `http://127.0.0.1:8000` unless you set `NEXT_PUBLIC_API_URL`. Copy `frontend/.env.example` to `frontend/.env.local` if you need to change it.
 
-If you already had an old `ajo.db` from earlier work, delete it once so the tables match.
+If you already had an old `ajo.db` from earlier work, delete it once so the tables match (the join-request table is new).
+
+## API shape (team update)
+
+Join is a **request**, not an instant membership. Ade approves it.
+
+| Method | Path | Who |
+| --- | --- | --- |
+| POST | `/auth/register`, `/auth/login` | Anyone |
+| GET | `/auth/me` | Signed-in user |
+| GET | `/circles` | Signed-in user (all circles) |
+| GET | `/circles/{id}`, `/circles/{id}/health` | Circle admin or member |
+| POST | `/circles/{id}/join` | Signed-in user (creates a pending request) |
+| POST | `/circles/{id}/contributions` | Member |
+| GET | `/circles/{id}/contributions/me` | Member |
+| GET | `/circles/my_contributions` | Signed-in user |
+| POST | `/circles/{id}/payouts` | Circle admin |
+| POST | `/admin/circles` | Admin |
+| GET | `/admin/users` | Admin |
+| GET | `/admin/requests` | Admin |
+| GET | `/admin/circles/{id}/requests` | Circle admin |
+| POST | `/admin/circles/{id}/requests/{request_id}/approve` | Circle admin |
+| PUT | `/admin/circles/{id}/turn-order` | Circle admin |
+| POST | `/bank/confirm`, GET `/bank/ledger` | `X-API-Key` |
 
 ## Host on Vercel
 
@@ -66,13 +89,7 @@ On Vercel the database file lives in `/tmp`. Demo users are reseeded when a new 
 4. Deploy.
 5. Open `https://your-api.vercel.app/docs` and check it loads.
 
-Optional env on this project:
-
-| Name | Value |
-| --- | --- |
-| `FRONTEND_ORIGIN` | `https://your-web.vercel.app` |
-
-Preview URLs on `*.vercel.app` are already allowed by CORS. Set `FRONTEND_ORIGIN` if you use a custom domain.
+CORS is open (`allow_origins=["*"]`) for the hackathon.
 
 ### 3. Website project
 
@@ -92,7 +109,7 @@ No trailing slash.
 
 ### 4. If the site cannot reach the API
 
-Set `FRONTEND_ORIGIN` on the API project to the website URL and redeploy the API. Then confirm `NEXT_PUBLIC_API_URL` on the website project matches the API URL and redeploy the website.
+Confirm `NEXT_PUBLIC_API_URL` on the website project matches the API URL (no trailing slash) and redeploy the website.
 
 ## Why this auth style
 

@@ -1,9 +1,11 @@
-import os
 import time
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
+from app.routes.admin import router as admin_router
 from app.routes.auth import router as auth_router
 from app.routes.bank import router as bank_router
 from app.routes.circles import router as circles_router
@@ -11,28 +13,32 @@ from app.routes.contributions import router as contributions_router
 from app.routes.payouts import router as payouts_router
 from app.services.db import create_db_and_tables, seed_demo_users
 
+# Register tables with SQLModel before create_all.
+import app.models as _models  # noqa: F401
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    seed_demo_users()
+    yield
+
+
 app = FastAPI(
     title="Ajo — The Savings Circle",
     description=(
-        "Weekly contributions, a pot that goes to whoever's turn it is, "
-        "and a bank robot that confirms transfers with a key, not a password."
+        "A weekly savings circle: members pay in, one person collects the pot "
+        "by turn, and the bank's robot confirms transfers that have actually cleared."
     ),
+    default_response_class=JSONResponse,
+    lifespan=lifespan,
 )
 
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-]
-if extra := os.getenv("FRONTEND_ORIGIN"):
-    origins.extend(origin.strip() for origin in extra.split(",") if origin.strip())
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -47,14 +53,11 @@ async def add_process_time_header(request: Request, call_next):
     return response
 
 
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
-    seed_demo_users()
-
-
 app.include_router(auth_router)
-app.include_router(circles_router)
+app.include_router(admin_router)
+# Contributions before circles so GET /circles/my_contributions is not eaten
+# by GET /circles/{circle_id}.
 app.include_router(contributions_router)
+app.include_router(circles_router)
 app.include_router(payouts_router)
 app.include_router(bank_router)

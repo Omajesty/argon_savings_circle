@@ -63,7 +63,7 @@ def login_user(
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Wrong email or password.",
+            detail="Invalid email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

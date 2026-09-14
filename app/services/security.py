@@ -1,30 +1,29 @@
-import time
+from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
 
-SECRET_KEY = "argon-secret"
+SECRET_KEY = "ajo-dev-secret-not-for-production"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 BANK_API_KEY = "argon-secret-ajo"
 
 
-def hash_password(plain: str) -> str:
-    """One-way scramble. The salt is generated fresh, so two people with the
-    same password still get different hashes."""
-    hashed = bcrypt.hashpw(plain.encode(), bcrypt.gensalt())
-    return hashed.decode()
+def hash_password(password: str) -> str:
+    password_bytes = password.encode("utf-8")
+    hashed = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
+    return hashed.decode("utf-8")
 
 
-def verify_password(plain: str, hashed: str) -> bool:
-    """We never un-hash. We hash the attempt and compare fingerprints."""
-    return bcrypt.checkpw(plain.encode(), hashed.encode())
+def verify_password(password: str, hashed_password: str) -> bool:
+    password_bytes = password.encode("utf-8")
+    hashed_bytes = hashed_password.encode("utf-8")
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
 def create_access_token(user_id: int) -> str:
-    """A signed pass. The password is not inside it — only who you are, and when it dies."""
-    payload = {
-        "sub": str(user_id),
-        "exp": time.time() + ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-    }
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+    payload = {"sub": str(user_id), "exp": expire}
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)

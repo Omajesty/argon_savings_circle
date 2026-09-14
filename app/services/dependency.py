@@ -55,7 +55,7 @@ def require_admin(
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Members may not do this. Speak to the circle admin.",
+            detail="Admin access required",
         )
     return current_user
 

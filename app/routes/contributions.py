@@ -1,5 +1,3 @@
-from typing import Annotated
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
@@ -11,21 +9,20 @@ from app.services.db import get_session
 from app.services.dependency import get_current_user
 from app.services.helpers import get_circle_or_404, require_membership
 
-router = APIRouter(prefix="/circles/{circle_id}", tags=["Contributions"])
+router = APIRouter(tags=["Contributions"])
 
 
 @router.post(
-    "/contributions",
+    "/circles/{circle_id}/contributions",
     response_model=ContributionOut,
     status_code=status.HTTP_201_CREATED,
 )
 def record_contribution(
     circle_id: int,
     body: ContributeIn,
-    current_user: Annotated[User, Depends(get_current_user)],
-    session: Annotated[Session, Depends(get_session)],
-) -> Contribution:
-    """One payment per member per week. The circle picks the week, not the client."""
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
     circle = get_circle_or_404(session, circle_id)
     require_membership(session, current_user.id, circle_id)
 
@@ -56,15 +53,31 @@ def record_contribution(
 
 
 @router.get(
-    "/contributions/me",
+    "/circles/my_contributions",
     response_model=list[ContributionOut],
     status_code=status.HTTP_200_OK,
 )
 def my_contributions(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    return session.exec(
+        select(Contribution)
+        .where(Contribution.user_id == current_user.id)
+        .order_by(Contribution.week)
+    ).all()
+
+
+@router.get(
+    "/circles/{circle_id}/contributions/me",
+    response_model=list[ContributionOut],
+    status_code=status.HTTP_200_OK,
+)
+def my_circle_contributions(
     circle_id: int,
-    current_user: Annotated[User, Depends(get_current_user)],
-    session: Annotated[Session, Depends(get_session)],
-) -> list[Contribution]:
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
     get_circle_or_404(session, circle_id)
     require_membership(session, current_user.id, circle_id)
     return session.exec(

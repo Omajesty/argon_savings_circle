@@ -1,5 +1,3 @@
-from typing import Annotated
-
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlmodel import Session, select
 
@@ -7,32 +5,11 @@ from app.models.contribution import Contribution
 from app.models.ledger import LedgerEntry
 from app.schemas.bank import BankConfirmIn, LedgerOut
 from app.schemas.contributions import ContributionOut
-from app.services.db import engine, get_session
+from app.services.db import get_session
 from app.services.dependency import require_bank_robot
+from app.services.ledger import write_ledger_line
 
 router = APIRouter(prefix="/bank", tags=["Bank"])
-
-
-def write_ledger_line(
-    contribution_id: int,
-    circle_id: int,
-    user_id: int,
-    amount: int,
-    week: int,
-) -> None:
-    """Runs after the response is already gone. Needs its own session
-    because the request session has closed."""
-    with Session(engine) as session:
-        session.add(
-            LedgerEntry(
-                contribution_id=contribution_id,
-                circle_id=circle_id,
-                user_id=user_id,
-                amount=amount,
-                week=week,
-            )
-        )
-        session.commit()
 
 
 @router.post(
@@ -43,10 +20,9 @@ def write_ledger_line(
 def confirm_transfer(
     body: BankConfirmIn,
     background_tasks: BackgroundTasks,
-    session: Annotated[Session, Depends(get_session)],
-    api_key: Annotated[str, Depends(require_bank_robot)],
-) -> Contribution:
-    """A member's JWT cannot get in here. Only the key."""
+    session: Session = Depends(get_session),
+    _: str = Depends(require_bank_robot),
+):
     contribution = session.get(Contribution, body.contribution_id)
     if contribution is None:
         raise HTTPException(
@@ -82,7 +58,7 @@ def confirm_transfer(
     status_code=status.HTTP_200_OK,
 )
 def read_ledger(
-    session: Annotated[Session, Depends(get_session)],
-    api_key: Annotated[str, Depends(require_bank_robot)],
-) -> list[LedgerEntry]:
+    session: Session = Depends(get_session),
+    _: str = Depends(require_bank_robot),
+):
     return session.exec(select(LedgerEntry).order_by(LedgerEntry.id)).all()
