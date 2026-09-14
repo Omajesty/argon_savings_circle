@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: #2f327d;
+  background: #ffffff;
+  font-family: Poppins, system-ui, sans-serif;
+}
+
+.btn-teal {
+  @apply inline-flex items-center justify-center rounded-pill bg-teal px-8 py-3 text-sm font-medium text-white transition hover:bg-teal-dark;
+}
+
+.btn-ghost {
+  @apply inline-flex items-center justify-center rounded-pill border border-teal px-8 py-3 text-sm font-medium text-teal transition hover:bg-teal-pale;
+}
+
+.field {
+  @apply w-full rounded-2xl border border-[#E5E5F0] bg-white px-4 py-3 text-sm text-navy outline-none focus:border-teal;
+}
+
+.card {
+  @apply rounded-[24px] bg-white p-8 shadow-card;
+}
