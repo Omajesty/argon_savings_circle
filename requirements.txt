@@ -1,0 +1,4 @@
+fastapi>=0.141.1
+sqlmodel>=0.0.42
+bcrypt>=5.0.0
+pyjwt>=2.13.0
